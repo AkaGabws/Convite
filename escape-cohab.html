@@ -1,0 +1,1429 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COHAB - Sistema Interno</title>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&family=IBM+Plex+Mono:wght@400;600&family=Bebas+Neue&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --green-terminal: #33ff33;
+            --green-dark: #0a3d0a;
+            --amber: #ffb000;
+            --bg-dark: #0a0a0a;
+            --paper: #f4f1e8;
+            --stamp-red: #c41e3a;
+        }
+
+        body {
+            font-family: 'IBM Plex Mono', monospace;
+            background: var(--bg-dark);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* TELA INICIAL */
+        .screen {
+            display: none;
+            min-height: 100vh;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* INTRO SCREEN */
+        #intro {
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: 
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 2px,
+                    rgba(0,0,0,0.3) 2px,
+                    rgba(0,0,0,0.3) 4px
+                ),
+                linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            padding: 20px;
+            text-align: center;
+        }
+
+        .glitch-container {
+            position: relative;
+        }
+
+        .logo-cohab {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(4rem, 15vw, 8rem);
+            color: var(--amber);
+            text-shadow: 
+                0 0 10px var(--amber),
+                0 0 20px var(--amber),
+                0 0 40px var(--amber),
+                4px 4px 0 #1a1a2e;
+            letter-spacing: 0.2em;
+            animation: flicker 3s infinite;
+        }
+
+        @keyframes flicker {
+            0%, 100% { opacity: 1; }
+            92% { opacity: 1; }
+            93% { opacity: 0.8; }
+            94% { opacity: 1; }
+            96% { opacity: 0.9; }
+            97% { opacity: 1; }
+        }
+
+        .subtitle {
+            font-family: 'VT323', monospace;
+            font-size: clamp(1rem, 4vw, 1.5rem);
+            color: var(--green-terminal);
+            margin-top: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.3em;
+        }
+
+        .intro-text {
+            max-width: 600px;
+            margin: 40px auto;
+            color: #aaa;
+            line-height: 1.8;
+            font-size: 0.95rem;
+        }
+
+        .intro-text span {
+            color: var(--amber);
+            font-weight: 600;
+        }
+
+        .btn-start {
+            margin-top: 30px;
+            padding: 20px 60px;
+            font-family: 'VT323', monospace;
+            font-size: 1.8rem;
+            background: transparent;
+            border: 3px solid var(--green-terminal);
+            color: var(--green-terminal);
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        .btn-start:hover {
+            background: var(--green-terminal);
+            color: var(--bg-dark);
+            box-shadow: 0 0 30px var(--green-terminal);
+        }
+
+        .btn-start::before {
+            content: '>';
+            position: absolute;
+            left: 15px;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        /* PROGRESS BAR */
+        .progress-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: rgba(0,0,0,0.95);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            z-index: 100;
+            border-bottom: 2px solid #333;
+        }
+
+        .progress-container.show {
+            display: flex;
+        }
+
+        .progress-step {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #222;
+            border: 2px solid #444;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'VT323', monospace;
+            font-size: 1.2rem;
+            color: #666;
+            transition: all 0.5s;
+        }
+
+        .progress-step.completed {
+            background: var(--green-terminal);
+            border-color: var(--green-terminal);
+            color: var(--bg-dark);
+            box-shadow: 0 0 15px var(--green-terminal);
+        }
+
+        .progress-step.current {
+            border-color: var(--amber);
+            color: var(--amber);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .progress-line {
+            width: 40px;
+            height: 3px;
+            background: #333;
+        }
+
+        .progress-line.completed {
+            background: var(--green-terminal);
+        }
+
+        /* INFO REVELADA */
+        .revealed-info {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0,0,0,0.95);
+            padding: 15px;
+            display: none;
+            justify-content: center;
+            gap: 30px;
+            border-top: 2px solid #333;
+            z-index: 100;
+        }
+
+        .revealed-info.show {
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        .info-item {
+            text-align: center;
+        }
+
+        .info-label {
+            font-size: 0.7rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+        }
+
+        .info-value {
+            font-family: 'VT323', monospace;
+            font-size: 1.3rem;
+            color: var(--green-terminal);
+            margin-top: 5px;
+        }
+
+        .info-value.hidden {
+            color: #333;
+        }
+
+        /* ========== FASE 1: CARIMBAR ========== */
+        #fase1 {
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(180deg, #2c2c2c 0%, #1a1a1a 100%);
+            padding: 80px 20px;
+        }
+
+        .fase-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(1.5rem, 5vw, 2.5rem);
+            color: var(--amber);
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .fase-subtitle {
+            color: #888;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 0.9rem;
+        }
+
+        .mesa-trabalho {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            min-height: 400px;
+            background: 
+                linear-gradient(90deg, rgba(139,90,43,0.1) 1px, transparent 1px),
+                linear-gradient(rgba(139,90,43,0.1) 1px, transparent 1px),
+                linear-gradient(135deg, #5c4033 0%, #3d2817 100%);
+            background-size: 20px 20px, 20px 20px, 100% 100%;
+            border-radius: 5px;
+            padding: 30px;
+            box-shadow: 
+                inset 0 2px 10px rgba(0,0,0,0.5),
+                0 10px 40px rgba(0,0,0,0.5);
+        }
+
+        .documentos-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .documento {
+            width: 120px;
+            height: 160px;
+            background: var(--paper);
+            border-radius: 3px;
+            box-shadow: 2px 2px 10px rgba(0,0,0,0.3);
+            cursor: pointer;
+            position: relative;
+            transition: transform 0.2s;
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
+        }
+
+        .documento:hover:not(.carimbado) {
+            transform: translateY(-5px) rotate(-2deg);
+        }
+
+        .documento::before {
+            content: 'PROCESSO';
+            font-size: 0.6rem;
+            color: #999;
+            letter-spacing: 0.1em;
+        }
+
+        .documento-lines {
+            flex: 1;
+            margin-top: 10px;
+            background: 
+                repeating-linear-gradient(
+                    transparent,
+                    transparent 8px,
+                    #ddd 8px,
+                    #ddd 9px
+                );
+        }
+
+        .documento.carimbado::after {
+            content: 'CARIMBADO';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-15deg);
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1rem;
+            color: var(--stamp-red);
+            border: 3px solid var(--stamp-red);
+            padding: 5px 10px;
+            border-radius: 5px;
+            opacity: 0.9;
+        }
+
+        .carimbo {
+            position: fixed;
+            width: 80px;
+            height: 100px;
+            background: linear-gradient(180deg, #8b4513 0%, #654321 100%);
+            border-radius: 5px 5px 0 0;
+            cursor: grab;
+            z-index: 50;
+            display: none;
+            box-shadow: 3px 3px 15px rgba(0,0,0,0.4);
+        }
+
+        .carimbo::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 20px;
+            background: var(--stamp-red);
+            border-radius: 0 0 3px 3px;
+        }
+
+        .carimbo.show {
+            display: block;
+        }
+
+        .contador-carimbos {
+            font-family: 'VT323', monospace;
+            font-size: 2rem;
+            color: var(--green-terminal);
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        /* ========== FASE 2: ENCONTRAR CHAVE ========== */
+        #fase2 {
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+            padding: 80px 20px;
+        }
+
+        .gaveta {
+            width: 100%;
+            max-width: 600px;
+            height: 350px;
+            background: linear-gradient(180deg, #4a4a4a 0%, #333 100%);
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 
+                inset 0 5px 20px rgba(0,0,0,0.5),
+                0 10px 40px rgba(0,0,0,0.5);
+        }
+
+        .item-gaveta {
+            position: absolute;
+            cursor: pointer;
+            transition: all 0.3s;
+            user-select: none;
+        }
+
+        .item-gaveta:hover {
+            transform: scale(1.1);
+            z-index: 10;
+        }
+
+        .item-gaveta.encontrado {
+            animation: encontrado 0.5s ease;
+        }
+
+        @keyframes encontrado {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+        }
+
+        .papel-gaveta {
+            width: 60px;
+            height: 80px;
+            background: var(--paper);
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+        }
+
+        .clip-gaveta {
+            width: 20px;
+            height: 40px;
+            border: 3px solid #888;
+            border-radius: 10px 10px 0 0;
+            background: transparent;
+        }
+
+        .caneta-gaveta {
+            width: 80px;
+            height: 12px;
+            background: linear-gradient(90deg, #1a1a8e 80%, #ffd700 80%);
+            border-radius: 2px;
+        }
+
+        .pasta-gaveta {
+            width: 90px;
+            height: 70px;
+            background: #d4a574;
+            border-radius: 0 5px 5px 5px;
+            position: relative;
+        }
+
+        .pasta-gaveta::before {
+            content: '';
+            position: absolute;
+            top: -15px;
+            left: 0;
+            width: 40px;
+            height: 15px;
+            background: #d4a574;
+            border-radius: 5px 5px 0 0;
+        }
+
+        .chave-gaveta {
+            width: 50px;
+            height: 25px;
+            background: #ffd700;
+            border-radius: 3px;
+            position: relative;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
+        .chave-gaveta::before {
+            content: '';
+            position: absolute;
+            right: -20px;
+            top: 5px;
+            width: 25px;
+            height: 15px;
+            border: 4px solid #ffd700;
+            border-radius: 50%;
+            background: transparent;
+        }
+
+        .borracha-gaveta {
+            width: 40px;
+            height: 20px;
+            background: #ff6b6b;
+            border-radius: 3px;
+        }
+
+        .grampeador-gaveta {
+            width: 60px;
+            height: 25px;
+            background: #333;
+            border-radius: 3px;
+        }
+
+        .post-it-gaveta {
+            width: 50px;
+            height: 50px;
+            background: #ffeb3b;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .dica-gaveta {
+            text-align: center;
+            margin-top: 20px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        /* ========== FASE 3: JURIDIQUÊS ========== */
+        #fase3 {
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: 
+                url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23222' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"),
+                linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            padding: 80px 20px;
+        }
+
+        .processo-container {
+            width: 100%;
+            max-width: 700px;
+            background: var(--paper);
+            padding: 40px;
+            border-radius: 5px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            position: relative;
+        }
+
+        .processo-container::before {
+            content: 'CONFIDENCIAL';
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 0.7rem;
+            color: var(--stamp-red);
+            letter-spacing: 0.2em;
+            border: 1px solid var(--stamp-red);
+            padding: 3px 8px;
+        }
+
+        .processo-header {
+            text-align: center;
+            border-bottom: 2px solid #333;
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+        }
+
+        .processo-header h2 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.5rem;
+            color: #333;
+            letter-spacing: 0.1em;
+        }
+
+        .processo-numero {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .processo-texto {
+            font-size: 0.95rem;
+            line-height: 2;
+            color: #333;
+            text-align: justify;
+        }
+
+        .palavra-secreta {
+            background: #333;
+            color: #333;
+            padding: 2px 8px;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: all 0.3s;
+            user-select: none;
+        }
+
+        .palavra-secreta:hover {
+            background: #555;
+        }
+
+        .palavra-secreta.revelada {
+            background: var(--green-terminal);
+            color: var(--bg-dark);
+        }
+
+        .contador-palavras {
+            text-align: center;
+            margin-top: 20px;
+            font-family: 'VT323', monospace;
+            font-size: 1.2rem;
+            color: #666;
+        }
+
+        /* ========== FASE 4: FUGIR DO CHEFE ========== */
+        #fase4 {
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(180deg, #0a0a0a 0%, #1a1a1a 100%);
+            padding: 80px 20px;
+        }
+
+        .escritorio-game {
+            width: 100%;
+            max-width: 600px;
+            height: 400px;
+            background: 
+                linear-gradient(180deg, #3d3d3d 0%, #2a2a2a 100%);
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+            border: 3px solid #444;
+        }
+
+        .corredor {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 100px;
+            background: #4a4a4a;
+            border-top: 3px solid #555;
+        }
+
+        .yasmin-sprite {
+            position: absolute;
+            bottom: 110px;
+            width: 40px;
+            height: 60px;
+            background: var(--amber);
+            border-radius: 20px 20px 5px 5px;
+            transition: left 0.1s;
+            z-index: 20;
+        }
+
+        .yasmin-sprite::before {
+            content: '😊';
+            position: absolute;
+            top: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.5rem;
+        }
+
+        .chefe-sprite {
+            position: absolute;
+            bottom: 110px;
+            width: 50px;
+            height: 70px;
+            background: #c41e3a;
+            border-radius: 25px 25px 5px 5px;
+            z-index: 15;
+        }
+
+        .chefe-sprite::before {
+            content: '😠';
+            position: absolute;
+            top: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.8rem;
+        }
+
+        .porta-saida {
+            position: absolute;
+            right: 20px;
+            bottom: 100px;
+            width: 60px;
+            height: 100px;
+            background: linear-gradient(180deg, #8b4513 0%, #654321 100%);
+            border-radius: 5px 5px 0 0;
+            border: 4px solid #4a3520;
+        }
+
+        .porta-saida::before {
+            content: 'SAÍDA';
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'VT323', monospace;
+            font-size: 1rem;
+            color: var(--green-terminal);
+            white-space: nowrap;
+        }
+
+        .porta-saida::after {
+            content: '';
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            width: 8px;
+            height: 8px;
+            background: #ffd700;
+            border-radius: 50%;
+        }
+
+        .obstaculo {
+            position: absolute;
+            bottom: 100px;
+            background: #666;
+            border-radius: 5px;
+        }
+
+        .game-instrucao {
+            text-align: center;
+            margin-top: 20px;
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        .game-instrucao kbd {
+            background: #333;
+            padding: 5px 15px;
+            border-radius: 5px;
+            border: 1px solid #555;
+            color: var(--amber);
+        }
+
+        .relogio-game {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-family: 'VT323', monospace;
+            font-size: 2rem;
+            color: var(--green-terminal);
+        }
+
+        /* ========== TELA FINAL ========== */
+        #final {
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: 
+                radial-gradient(circle at 50% 50%, rgba(51, 255, 51, 0.1) 0%, transparent 50%),
+                linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+            padding: 20px;
+            text-align: center;
+        }
+
+        .convite-final {
+            background: 
+                linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 50%),
+                linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
+            border: 2px solid var(--green-terminal);
+            border-radius: 20px;
+            padding: 50px 40px;
+            max-width: 500px;
+            box-shadow: 
+                0 0 50px rgba(51, 255, 51, 0.2),
+                inset 0 0 50px rgba(51, 255, 51, 0.05);
+            animation: glow 2s infinite alternate;
+        }
+
+        @keyframes glow {
+            from { box-shadow: 0 0 30px rgba(51, 255, 51, 0.2); }
+            to { box-shadow: 0 0 60px rgba(51, 255, 51, 0.4); }
+        }
+
+        .convite-emoji {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            animation: bounce 1s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .convite-titulo {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(2rem, 8vw, 3.5rem);
+            color: var(--green-terminal);
+            text-shadow: 0 0 20px var(--green-terminal);
+            margin-bottom: 10px;
+        }
+
+        .convite-subtitulo {
+            color: #888;
+            font-size: 1rem;
+            margin-bottom: 30px;
+        }
+
+        .convite-detalhe {
+            margin: 15px 0;
+        }
+
+        .convite-label {
+            font-size: 0.75rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.3em;
+        }
+
+        .convite-valor {
+            font-family: 'VT323', monospace;
+            font-size: 2rem;
+            color: var(--amber);
+            margin-top: 5px;
+        }
+
+        .convite-mensagem {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 1px solid #333;
+            color: #aaa;
+            font-style: italic;
+            line-height: 1.6;
+        }
+
+        .btn-confirmar {
+            margin-top: 30px;
+            padding: 15px 40px;
+            font-family: 'VT323', monospace;
+            font-size: 1.5rem;
+            background: var(--green-terminal);
+            border: none;
+            color: var(--bg-dark);
+            cursor: pointer;
+            border-radius: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            transition: all 0.3s;
+        }
+
+        .btn-confirmar:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px var(--green-terminal);
+        }
+
+        /* MODAL DE SUCESSO */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #1a1a1a;
+            border: 2px solid var(--green-terminal);
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            animation: modalPop 0.5s ease;
+        }
+
+        @keyframes modalPop {
+            from { transform: scale(0.5); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-emoji {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2rem;
+            color: var(--green-terminal);
+            margin-bottom: 10px;
+        }
+
+        .modal-text {
+            color: #888;
+            margin-bottom: 20px;
+        }
+
+        .modal-info {
+            font-family: 'VT323', monospace;
+            font-size: 1.5rem;
+            color: var(--amber);
+            padding: 10px 20px;
+            background: rgba(255, 176, 0, 0.1);
+            border-radius: 5px;
+        }
+
+        .btn-continuar {
+            margin-top: 25px;
+            padding: 12px 30px;
+            font-family: 'VT323', monospace;
+            font-size: 1.2rem;
+            background: var(--green-terminal);
+            border: none;
+            color: var(--bg-dark);
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        /* CONFETTI */
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            top: -10px;
+            animation: confettiFall 3s linear forwards;
+            z-index: 300;
+        }
+
+        @keyframes confettiFall {
+            to {
+                top: 100vh;
+                transform: rotate(720deg);
+            }
+        }
+
+        /* Responsivo */
+        @media (max-width: 600px) {
+            .documento {
+                width: 90px;
+                height: 120px;
+            }
+
+            .processo-container {
+                padding: 20px;
+            }
+
+            .convite-final {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- PROGRESS BAR -->
+    <div class="progress-container" id="progressBar">
+        <div class="progress-step" id="step1">1</div>
+        <div class="progress-line" id="line1"></div>
+        <div class="progress-step" id="step2">2</div>
+        <div class="progress-line" id="line2"></div>
+        <div class="progress-step" id="step3">3</div>
+        <div class="progress-line" id="line3"></div>
+        <div class="progress-step" id="step4">4</div>
+    </div>
+
+    <!-- INFO REVELADA -->
+    <div class="revealed-info" id="revealedInfo">
+        <div class="info-item">
+            <div class="info-label">Dia</div>
+            <div class="info-value" id="infoDia">???</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Hora</div>
+            <div class="info-value" id="infoHora">???</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Local</div>
+            <div class="info-value" id="infoLocal">???</div>
+        </div>
+    </div>
+
+    <!-- INTRO -->
+    <div class="screen active" id="intro">
+        <div class="glitch-container">
+            <h1 class="logo-cohab">COHAB</h1>
+            <p class="subtitle">Sistema de Estagiários</p>
+        </div>
+        <div class="intro-text">
+            <p>Atenção, <span>YASMIN</span>!</p>
+            <br>
+            <p>Você está presa no estágio da COHAB. São 18h de uma quinta-feira e você precisa ESCAPAR.</p>
+            <br>
+            <p>Complete os <span>4 desafios</span> para descobrir onde será o rolê e conquistar sua liberdade!</p>
+        </div>
+        <button class="btn-start" onclick="iniciarJogo()">
+            INICIAR FUGA
+        </button>
+    </div>
+
+    <!-- FASE 1: CARIMBAR -->
+    <div class="screen" id="fase1">
+        <h2 class="fase-title">📋 Fase 1: Carimbando Processos</h2>
+        <p class="fase-subtitle">Carimbou todos os processos antes de sair (só faltam 8!)</p>
+        
+        <div class="mesa-trabalho">
+            <div class="documentos-container" id="documentos">
+                <!-- Documentos serão gerados via JS -->
+            </div>
+        </div>
+        
+        <div class="contador-carimbos">
+            <span id="carimbados">0</span> / 8 carimbados
+        </div>
+    </div>
+
+    <!-- FASE 2: ENCONTRAR CHAVE -->
+    <div class="screen" id="fase2">
+        <h2 class="fase-title">🔑 Fase 2: Cadê a Chave?</h2>
+        <p class="fase-subtitle">Encontre a chave do escritório na gaveta bagunçada</p>
+        
+        <div class="gaveta" id="gaveta">
+            <!-- Itens serão gerados via JS -->
+        </div>
+        
+        <p class="dica-gaveta">Clique nos itens para procurar a chave...</p>
+    </div>
+
+    <!-- FASE 3: JURIDIQUÊS -->
+    <div class="screen" id="fase3">
+        <h2 class="fase-title">📜 Fase 3: Decifrando o Juridiquês</h2>
+        <p class="fase-subtitle">Encontre as 5 palavras escondidas no processo</p>
+        
+        <div class="processo-container">
+            <div class="processo-header">
+                <h2>PROCESSO Nº 2025/FUGA-001</h2>
+                <p class="processo-numero">Vara da Liberdade Noturna</p>
+            </div>
+            <div class="processo-texto">
+                <p>
+                    VISTOS, relatados e discutidos estes autos de <span class="palavra-secreta" data-word="1">SOLTURA</span> 
+                    em que é requerente a Dra. YASMIN, estagiária exemplar desta instituição.
+                </p>
+                <br>
+                <p>
+                    CONSIDERANDO que a requerente demonstrou dedicação <span class="palavra-secreta" data-word="2">EXTREMA</span> 
+                    durante todo o período de estágio, cumprindo com todas as obrigações que lhe foram impostas;
+                </p>
+                <br>
+                <p>
+                    CONSIDERANDO ainda que é quinta-feira e que o <span class="palavra-secreta" data-word="3">BAR</span> 
+                    aguarda ansiosamente a presença da requerente;
+                </p>
+                <br>
+                <p>
+                    CONSIDERANDO que a <span class="palavra-secreta" data-word="4">CERVEJA</span> gelada é um direito 
+                    fundamental de todo estagiário que sobreviveu à COHAB;
+                </p>
+                <br>
+                <p>
+                    RESOLVE: Conceder <span class="palavra-secreta" data-word="5">LIBERDADE</span> imediata à requerente, 
+                    determinando que compareça ao estabelecimento indicado para celebração.
+                </p>
+            </div>
+        </div>
+        
+        <p class="contador-palavras">
+            Palavras encontradas: <span id="palavrasEncontradas">0</span> / 5
+        </p>
+    </div>
+
+    <!-- FASE 4: FUGIR DO CHEFE -->
+    <div class="screen" id="fase4">
+        <h2 class="fase-title">🏃 Fase 4: Fuja do Chefe!</h2>
+        <p class="fase-subtitle">Chegue até a porta antes que o expediente acabe!</p>
+        
+        <div class="escritorio-game" id="gameArea">
+            <div class="relogio-game" id="relogio">17:55</div>
+            <div class="porta-saida"></div>
+            <div class="corredor"></div>
+            <div class="yasmin-sprite" id="yasmin"></div>
+            <div class="chefe-sprite" id="chefe"></div>
+        </div>
+        
+        <p class="game-instrucao">
+            Use <kbd>← →</kbd> ou toque na tela para mover
+        </p>
+    </div>
+
+    <!-- TELA FINAL -->
+    <div class="screen" id="final">
+        <div class="convite-final">
+            <div class="convite-emoji">🍻</div>
+            <h1 class="convite-titulo">VOCÊ ESCAPOU!</h1>
+            <p class="convite-subtitulo">A COHAB não te segura mais, formanda!</p>
+            
+            <div class="convite-detalhe">
+                <div class="convite-label">Quando</div>
+                <div class="convite-valor">09/01 • Depois das 19h</div>
+            </div>
+            
+            <div class="convite-detalhe">
+                <div class="convite-label">Onde</div>
+                <div class="convite-valor">Taqueria La Popular</div>
+            </div>
+            
+            <div class="convite-detalhe">
+                <div class="convite-label">Missão</div>
+                <div class="convite-valor">Sair em um date</div>
+            </div>
+            
+            <p class="convite-mensagem">
+                Você sobreviveu à COHAB, aos processos infinitos e ao juridiquês.<br>
+                Agora é hora de celebrar! Te esperamo lá! 🥳
+            </p>
+            
+            <button class="btn-confirmar" onclick="confirmarPresenca()">
+                ✓ Confirmar Presença
+            </button>
+        </div>
+    </div>
+
+    <!-- MODAL -->
+    <div class="modal-overlay" id="modal">
+        <div class="modal-content">
+            <div class="modal-emoji" id="modalEmoji">🎉</div>
+            <h2 class="modal-title" id="modalTitle">Fase Completa!</h2>
+            <p class="modal-text" id="modalText">Você descobriu uma informação!</p>
+            <div class="modal-info" id="modalInfo">09/01</div>
+            <button class="btn-continuar" onclick="fecharModal()">Continuar →</button>
+        </div>
+    </div>
+
+    <script>
+        // Estado do jogo
+        let faseAtual = 0;
+        let carimbados = 0;
+        let palavrasEncontradas = 0;
+        let jogoFase4Ativo = false;
+        let yasminPos = 50;
+        let chefePos = 200;
+        
+        // Informações do convite
+        const conviteInfo = {
+            dia: '09/01',
+            hora: 'Depois das 19h',
+            local: 'Taqueria La Popular'
+        };
+
+        // Iniciar jogo
+        function iniciarJogo() {
+            faseAtual = 1;
+            document.getElementById('intro').classList.remove('active');
+            document.getElementById('fase1').classList.add('active');
+            document.getElementById('progressBar').classList.add('show');
+            document.getElementById('revealedInfo').classList.add('show');
+            document.getElementById('step1').classList.add('current');
+            gerarDocumentos();
+        }
+
+        // ========== FASE 1: CARIMBAR ==========
+        function gerarDocumentos() {
+            const container = document.getElementById('documentos');
+            for (let i = 0; i < 8; i++) {
+                const doc = document.createElement('div');
+                doc.className = 'documento';
+                doc.innerHTML = '<div class="documento-lines"></div>';
+                doc.onclick = () => carimbarDocumento(doc);
+                container.appendChild(doc);
+            }
+        }
+
+        function carimbarDocumento(doc) {
+            if (doc.classList.contains('carimbado')) return;
+            
+            doc.classList.add('carimbado');
+            carimbados++;
+            document.getElementById('carimbados').textContent = carimbados;
+            
+            // Som de carimbo (visual feedback)
+            doc.style.transform = 'scale(0.95)';
+            setTimeout(() => doc.style.transform = '', 100);
+            
+            if (carimbados >= 8) {
+                setTimeout(() => completarFase(1), 500);
+            }
+        }
+
+        // ========== FASE 2: ENCONTRAR CHAVE ==========
+        function iniciarFase2() {
+            const gaveta = document.getElementById('gaveta');
+            gaveta.innerHTML = '';
+            
+            const itens = [
+                { class: 'papel-gaveta', x: 30, y: 50 },
+                { class: 'papel-gaveta', x: 150, y: 80 },
+                { class: 'papel-gaveta', x: 400, y: 40 },
+                { class: 'clip-gaveta', x: 100, y: 150 },
+                { class: 'clip-gaveta', x: 300, y: 200 },
+                { class: 'caneta-gaveta', x: 200, y: 100 },
+                { class: 'caneta-gaveta', x: 450, y: 180 },
+                { class: 'pasta-gaveta', x: 50, y: 220 },
+                { class: 'pasta-gaveta', x: 350, y: 250 },
+                { class: 'borracha-gaveta', x: 250, y: 60 },
+                { class: 'grampeador-gaveta', x: 500, y: 120 },
+                { class: 'post-it-gaveta', x: 180, y: 250 },
+                { class: 'post-it-gaveta', x: 420, y: 70 },
+                { class: 'chave-gaveta', x: 280, y: 180, isKey: true },
+            ];
+            
+            // Embaralhar posições um pouco
+            itens.forEach(item => {
+                const div = document.createElement('div');
+                div.className = `item-gaveta ${item.class}`;
+                div.style.left = (item.x + Math.random() * 30) + 'px';
+                div.style.top = (item.y + Math.random() * 20) + 'px';
+                div.style.transform = `rotate(${Math.random() * 30 - 15}deg)`;
+                
+                if (item.isKey) {
+                    div.onclick = () => encontrarChave(div);
+                } else {
+                    div.onclick = () => {
+                        div.style.opacity = '0.3';
+                        div.style.pointerEvents = 'none';
+                    };
+                }
+                
+                gaveta.appendChild(div);
+            });
+        }
+
+        function encontrarChave(div) {
+            div.classList.add('encontrado');
+            div.style.zIndex = '100';
+            div.style.boxShadow = '0 0 30px #ffd700';
+            setTimeout(() => completarFase(2), 800);
+        }
+
+        // ========== FASE 3: JURIDIQUÊS ==========
+        function iniciarFase3() {
+            palavrasEncontradas = 0;
+            document.getElementById('palavrasEncontradas').textContent = '0';
+            
+            document.querySelectorAll('.palavra-secreta').forEach(palavra => {
+                palavra.classList.remove('revelada');
+                palavra.onclick = () => revelarPalavra(palavra);
+            });
+        }
+
+        function revelarPalavra(palavra) {
+            if (palavra.classList.contains('revelada')) return;
+            
+            palavra.classList.add('revelada');
+            palavrasEncontradas++;
+            document.getElementById('palavrasEncontradas').textContent = palavrasEncontradas;
+            
+            if (palavrasEncontradas >= 5) {
+                setTimeout(() => completarFase(3), 500);
+            }
+        }
+
+        // ========== FASE 4: FUGIR DO CHEFE ==========
+        function iniciarFase4() {
+            yasminPos = 50;
+            chefePos = 250;
+            jogoFase4Ativo = true;
+            
+            const yasmin = document.getElementById('yasmin');
+            const chefe = document.getElementById('chefe');
+            const gameArea = document.getElementById('gameArea');
+            
+            yasmin.style.left = yasminPos + 'px';
+            chefe.style.left = chefePos + 'px';
+            
+            // Movimento do chefe (perseguir)
+            const chefeInterval = setInterval(() => {
+                if (!jogoFase4Ativo) {
+                    clearInterval(chefeInterval);
+                    return;
+                }
+                
+                if (chefePos > yasminPos + 60) {
+                    chefePos -= 1.5;
+                } else if (chefePos < yasminPos - 60) {
+                    chefePos += 1.5;
+                }
+                
+                chefe.style.left = chefePos + 'px';
+            }, 50);
+            
+            // Controles
+            document.addEventListener('keydown', moverYasmin);
+            gameArea.addEventListener('touchstart', handleTouch);
+            gameArea.addEventListener('click', handleClick);
+        }
+
+        function moverYasmin(e) {
+            if (!jogoFase4Ativo) return;
+            
+            const yasmin = document.getElementById('yasmin');
+            const gameWidth = document.getElementById('gameArea').offsetWidth;
+            
+            if (e.key === 'ArrowRight' || e.key === 'd') {
+                yasminPos = Math.min(yasminPos + 20, gameWidth - 100);
+            } else if (e.key === 'ArrowLeft' || e.key === 'a') {
+                yasminPos = Math.max(yasminPos - 20, 10);
+            }
+            
+            yasmin.style.left = yasminPos + 'px';
+            
+            // Verificar vitória
+            if (yasminPos >= gameWidth - 100) {
+                jogoFase4Ativo = false;
+                document.removeEventListener('keydown', moverYasmin);
+                completarFase(4);
+            }
+        }
+
+        function handleTouch(e) {
+            const touch = e.touches[0];
+            const gameArea = document.getElementById('gameArea');
+            const rect = gameArea.getBoundingClientRect();
+            const x = touch.clientX - rect.left;
+            
+            if (x > yasminPos) {
+                moverYasmin({ key: 'ArrowRight' });
+            } else {
+                moverYasmin({ key: 'ArrowLeft' });
+            }
+        }
+
+        function handleClick(e) {
+            const gameArea = document.getElementById('gameArea');
+            const rect = gameArea.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            
+            if (x > yasminPos) {
+                moverYasmin({ key: 'ArrowRight' });
+            } else {
+                moverYasmin({ key: 'ArrowLeft' });
+            }
+        }
+
+        // ========== COMPLETAR FASES ==========
+        function completarFase(fase) {
+            const infos = ['', 'dia', 'hora', 'local'];
+            const valores = ['', conviteInfo.dia, conviteInfo.hora, conviteInfo.local];
+            const emojis = ['', '📅', '🕖', '📍', '🎉'];
+            const titulos = ['', 'Data Descoberta!', 'Horário Descoberto!', 'Local Descoberto!', 'Você Escapou!'];
+            
+            // Atualizar progresso
+            document.getElementById(`step${fase}`).classList.remove('current');
+            document.getElementById(`step${fase}`).classList.add('completed');
+            if (fase < 4) {
+                document.getElementById(`line${fase}`).classList.add('completed');
+            }
+            
+            // Atualizar info revelada
+            if (fase === 1) {
+                document.getElementById('infoDia').textContent = conviteInfo.dia;
+            } else if (fase === 2) {
+                document.getElementById('infoHora').textContent = conviteInfo.hora;
+            } else if (fase === 3) {
+                document.getElementById('infoLocal').textContent = conviteInfo.local;
+            }
+            
+            // Mostrar modal
+            if (fase < 4) {
+                document.getElementById('modalEmoji').textContent = emojis[fase];
+                document.getElementById('modalTitle').textContent = titulos[fase];
+                document.getElementById('modalText').textContent = 'Você descobriu:';
+                document.getElementById('modalInfo').textContent = valores[fase];
+                document.getElementById('modal').classList.add('show');
+            } else {
+                // Fase final
+                irParaFinal();
+            }
+            
+            faseAtual = fase + 1;
+        }
+
+        function fecharModal() {
+            document.getElementById('modal').classList.remove('show');
+            
+            // Ir para próxima fase
+            document.getElementById(`fase${faseAtual - 1}`).classList.remove('active');
+            document.getElementById(`fase${faseAtual}`).classList.add('active');
+            document.getElementById(`step${faseAtual}`).classList.add('current');
+            
+            if (faseAtual === 2) iniciarFase2();
+            if (faseAtual === 3) iniciarFase3();
+            if (faseAtual === 4) iniciarFase4();
+        }
+
+        function irParaFinal() {
+            document.getElementById('progressBar').classList.remove('show');
+            document.getElementById('revealedInfo').classList.remove('show');
+            document.getElementById('fase4').classList.remove('active');
+            document.getElementById('final').classList.add('active');
+            
+            // Confetti!
+            criarConfetti();
+        }
+
+        function criarConfetti() {
+            const colors = ['#33ff33', '#ffb000', '#ff6b6b', '#4ecdc4', '#ffe66d'];
+            
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = Math.random() * 100 + 'vw';
+                    confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.animationDuration = (2 + Math.random() * 2) + 's';
+                    document.body.appendChild(confetti);
+                    
+                    setTimeout(() => confetti.remove(), 4000);
+                }, i * 50);
+            }
+        }
+
+        function confirmarPresenca() {
+            const btn = document.querySelector('.btn-confirmar');
+            btn.textContent = '✓ PRESENÇA CONFIRMADA!';
+            btn.style.background = '#33ff33';
+            btn.disabled = true;
+            
+            criarConfetti();
+            
+            // Criar link de compartilhamento
+            setTimeout(() => {
+                btn.textContent = '🍻 Nos vemos lá!';
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
