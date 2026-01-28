@@ -1,0 +1,1355 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Um Caso Misterioso</title>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=UnifrakturMaguntia&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0a0c;
+            min-height: 100vh;
+            font-family: 'Crimson Text', serif;
+            color: #d4d4d8;
+            overflow-x: hidden;
+        }
+
+        /* Fog effect */
+        .fog {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 200%;
+            height: 100%;
+            background: 
+                radial-gradient(ellipse at 20% 50%, rgba(60, 60, 80, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 50%, rgba(60, 60, 80, 0.08) 0%, transparent 50%);
+            animation: drift 30s linear infinite;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        @keyframes drift {
+            from { transform: translateX(0); }
+            to { transform: translateX(-50%); }
+        }
+
+        .container {
+            max-width: 750px;
+            margin: 0 auto;
+            padding: 30px 20px;
+            min-height: 100vh;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Screen management */
+        .screen {
+            display: none;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Typography */
+        h1 {
+            font-family: 'UnifrakturMaguntia', cursive;
+            font-size: clamp(1.8rem, 6vw, 2.8rem);
+            color: #a8a8b3;
+            font-weight: normal;
+            margin-bottom: 30px;
+            text-align: center;
+            letter-spacing: 2px;
+        }
+
+        h2 {
+            font-family: 'UnifrakturMaguntia', cursive;
+            font-size: clamp(1.3rem, 4vw, 1.8rem);
+            color: #8a8a95;
+            font-weight: normal;
+            margin-bottom: 20px;
+        }
+
+        p {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 20px;
+            color: #9a9aa5;
+        }
+
+        .italic {
+            font-style: italic;
+            color: #7a7a88;
+        }
+
+        /* Case file header */
+        .case-header {
+            border: 1px solid #2a2a33;
+            padding: 20px;
+            margin-bottom: 30px;
+            background: linear-gradient(145deg, #0e0e14, #0a0a0c);
+            position: relative;
+        }
+
+        .case-header::before {
+            content: 'CONFIDENCIAL';
+            position: absolute;
+            top: -10px;
+            left: 20px;
+            background: #0a0a0c;
+            padding: 0 10px;
+            font-size: 0.75rem;
+            letter-spacing: 3px;
+            color: #5a5a68;
+        }
+
+        .case-number {
+            font-size: 0.85rem;
+            color: #5a5a68;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+
+        /* Evidence board */
+        .evidence-board {
+            background: #12121a;
+            border: 1px solid #2a2a33;
+            padding: 25px;
+            margin: 25px 0;
+            min-height: 200px;
+            position: relative;
+        }
+
+        .evidence-board::before {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            bottom: 10px;
+            border: 1px dashed #2a2a33;
+            pointer-events: none;
+        }
+
+        /* Clues collected */
+        .clues-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .clue-item {
+            background: rgba(40, 40, 50, 0.5);
+            border: 1px solid #3a3a45;
+            padding: 8px 15px;
+            font-size: 0.95rem;
+            color: #7a7a88;
+            transition: all 0.3s ease;
+        }
+
+        .clue-item.found {
+            border-color: #5a6a5a;
+            color: #a8b8a8;
+            background: rgba(60, 80, 60, 0.2);
+        }
+
+        /* Buttons */
+        .btn {
+            background: transparent;
+            border: 1px solid #4a4a55;
+            color: #a8a8b3;
+            padding: 12px 35px;
+            font-family: 'Crimson Text', serif;
+            font-size: 1.05rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            letter-spacing: 1px;
+        }
+
+        .btn:hover {
+            border-color: #7a7a88;
+            color: #d4d4d8;
+            background: rgba(100, 100, 120, 0.1);
+        }
+
+        .btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .btn-small {
+            padding: 8px 20px;
+            font-size: 0.95rem;
+        }
+
+        /* Line divider */
+        .line {
+            width: 60px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #4a4a55, transparent);
+            margin: 25px auto;
+        }
+
+        /* Progress tracker */
+        .progress-tracker {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 30px;
+        }
+
+        .progress-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #2a2a33;
+            transition: all 0.3s ease;
+        }
+
+        .progress-dot.active {
+            background: #5a5a68;
+        }
+
+        .progress-dot.completed {
+            background: #4a5a4a;
+        }
+
+        /* ==================== */
+        /* PUZZLE SPECIFIC STYLES */
+        /* ==================== */
+
+        /* Puzzle 1: Memory Game */
+        .memory-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            max-width: 400px;
+            margin: 25px auto;
+        }
+
+        .memory-card {
+            aspect-ratio: 1;
+            background: #1a1a22;
+            border: 1px solid #2a2a33;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .memory-card:hover {
+            border-color: #4a4a55;
+        }
+
+        .memory-card .card-back {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #1a1a22;
+            transition: opacity 0.3s ease;
+        }
+
+        .memory-card .card-back::after {
+            content: '?';
+            font-family: 'UnifrakturMaguntia', cursive;
+            font-size: 1.5rem;
+            color: #3a3a45;
+        }
+
+        .memory-card .card-front {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .memory-card .card-front svg {
+            width: 50%;
+            height: 50%;
+            fill: #6a6a78;
+        }
+
+        .memory-card.flipped .card-back {
+            opacity: 0;
+        }
+
+        .memory-card.flipped .card-front {
+            opacity: 1;
+        }
+
+        .memory-card.matched {
+            border-color: #4a5a4a;
+            background: rgba(60, 80, 60, 0.1);
+        }
+
+        .memory-card.matched .card-front svg {
+            fill: #7a8a7a;
+        }
+
+        .memory-card.wrong {
+            border-color: #5a4a4a;
+            animation: shake 0.3s ease;
+        }
+
+        /* Puzzle 2: Cipher decode */
+        .cipher-display {
+            background: #0e0e14;
+            border: 1px solid #2a2a33;
+            padding: 25px;
+            margin: 20px 0;
+            font-family: monospace;
+            font-size: 1.3rem;
+            letter-spacing: 4px;
+            text-align: center;
+            color: #6a6a78;
+        }
+
+        .cipher-key {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(40px, 1fr));
+            gap: 8px;
+            margin: 20px 0;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .key-btn {
+            background: #1a1a22;
+            border: 1px solid #2a2a33;
+            color: #7a7a88;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .key-btn:hover {
+            border-color: #4a4a55;
+            color: #a8a8b3;
+        }
+
+        .key-btn.used {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .decoded-display {
+            font-family: 'Crimson Text', serif;
+            font-size: 1.4rem;
+            color: #a8b8a8;
+            margin: 20px 0;
+            min-height: 40px;
+            letter-spacing: 2px;
+        }
+
+        /* Puzzle 3: Sequence/Pattern */
+        .sequence-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 25px 0;
+            flex-wrap: wrap;
+        }
+
+        .sequence-slot {
+            width: 70px;
+            height: 70px;
+            background: #12121a;
+            border: 1px solid #2a2a33;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            transition: all 0.3s ease;
+        }
+
+        .sequence-slot.filled {
+            border-color: #4a5a4a;
+            background: rgba(60, 80, 60, 0.1);
+        }
+
+        .sequence-slot.wrong {
+            border-color: #6a4a4a;
+            background: rgba(100, 60, 60, 0.1);
+            animation: shake 0.3s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .symbol-options {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .symbol-btn {
+            width: 55px;
+            height: 55px;
+            background: #1a1a22;
+            border: 1px solid #3a3a45;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .symbol-btn:hover {
+            border-color: #5a5a68;
+            background: #22222a;
+        }
+
+        .symbol-btn svg {
+            width: 30px;
+            height: 30px;
+            fill: #6a6a78;
+        }
+
+        /* Puzzle 4: Word assembly */
+        .letter-bank {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            margin: 20px 0;
+        }
+
+        .letter-tile {
+            width: 40px;
+            height: 45px;
+            background: #1a1a22;
+            border: 1px solid #3a3a45;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #8a8a95;
+        }
+
+        .letter-tile:hover {
+            border-color: #5a5a68;
+            color: #b8b8c3;
+        }
+
+        .letter-tile.used {
+            opacity: 0.2;
+            cursor: not-allowed;
+        }
+
+        .word-slots {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            margin: 25px 0;
+            flex-wrap: wrap;
+        }
+
+        .word-slot {
+            width: 35px;
+            height: 42px;
+            border-bottom: 2px solid #3a3a45;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            color: #a8a8b3;
+            transition: all 0.3s ease;
+        }
+
+        .word-slot.filled {
+            border-color: #5a6a5a;
+        }
+
+        .word-gap {
+            width: 20px;
+        }
+
+        /* Puzzle 5: Lock combination */
+        .lock-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 30px 0;
+        }
+
+        .lock-digit {
+            background: #12121a;
+            border: 1px solid #2a2a33;
+            width: 60px;
+            padding: 10px 0;
+            text-align: center;
+        }
+
+        .lock-digit-display {
+            font-size: 2rem;
+            color: #8a8a95;
+            margin: 10px 0;
+            font-family: monospace;
+        }
+
+        .lock-btn {
+            background: #1a1a22;
+            border: 1px solid #2a2a33;
+            color: #6a6a78;
+            width: 100%;
+            padding: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .lock-btn:hover {
+            background: #22222a;
+            color: #9a9aa5;
+        }
+
+        /* Hint system */
+        .hint-container {
+            margin-top: 25px;
+            text-align: center;
+        }
+
+        .hint-text {
+            font-style: italic;
+            color: #5a5a68;
+            font-size: 0.95rem;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .hint-text.visible {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        /* Final reveal styles */
+        .reveal-container {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .reveal-box {
+            border: 1px solid #3a3a45;
+            padding: 40px;
+            margin: 30px auto;
+            background: linear-gradient(180deg, rgba(20, 20, 28, 0.9), rgba(15, 15, 20, 0.95));
+            max-width: 500px;
+        }
+
+        .date-text {
+            font-family: 'UnifrakturMaguntia', cursive;
+            font-size: 2.2rem;
+            color: #c8c8d0;
+            margin: 20px 0;
+        }
+
+        .place-text {
+            font-size: 1.5rem;
+            color: #a0a0b0;
+            letter-spacing: 1px;
+        }
+
+        /* Floating particles */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: rgba(150, 150, 170, 0.2);
+            border-radius: 50%;
+            animation: float-up 25s linear infinite;
+        }
+
+        @keyframes float-up {
+            0% { transform: translateY(100vh); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100vh); opacity: 0; }
+        }
+
+        /* Notification popup */
+        .notification {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #1a1a22;
+            border: 1px solid #4a5a4a;
+            padding: 15px 30px;
+            color: #a8b8a8;
+            transition: transform 0.4s ease;
+            z-index: 100;
+        }
+
+        .notification.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .sequence-slot {
+                width: 55px;
+                height: 55px;
+            }
+            
+            .symbol-btn {
+                width: 45px;
+                height: 45px;
+            }
+            
+            .lock-digit {
+                width: 50px;
+            }
+            
+            .reveal-box {
+                padding: 30px 20px;
+            }
+        }
+
+        /* Investigation notes */
+        .investigation-note {
+            background: rgba(20, 20, 28, 0.8);
+            border-left: 2px solid #4a4a55;
+            padding: 15px 20px;
+            margin: 20px 0;
+            font-style: italic;
+            color: #7a7a88;
+        }
+
+        /* Success message */
+        .success-msg {
+            color: #8a9a8a;
+            font-size: 1.1rem;
+            margin: 20px 0;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .success-msg.show {
+            opacity: 1;
+        }
+
+        /* Typewriter effect */
+        .typewriter {
+            overflow: hidden;
+            white-space: nowrap;
+            animation: typing 2s steps(30);
+            display: inline-block;
+        }
+
+        @keyframes typing {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="fog"></div>
+    <div class="particles" id="particles"></div>
+    <div class="notification" id="notification"></div>
+
+    <div class="container">
+        
+        <!-- ============ INTRO SCREEN ============ -->
+        <div class="screen active" id="intro">
+            <div class="progress-tracker">
+                <div class="progress-dot active"></div>
+                <div class="progress-dot"></div>
+                <div class="progress-dot"></div>
+                <div class="progress-dot"></div>
+                <div class="progress-dot"></div>
+                <div class="progress-dot"></div>
+            </div>
+
+            <div class="case-header">
+                <div class="case-number">CASO #2024-TB</div>
+                <h1>Um Convite Misterioso</h1>
+                <p class="italic">Arquivo classificado. Acesso restrito.</p>
+            </div>
+
+            <div class="evidence-board">
+                <p>Uma mensagem cifrada foi interceptada. Origem desconhecida. O remetente parece querer transmitir algo importante.</p>
+                <div class="line"></div>
+                <p>Sua missão: decifrar os enigmas e descobrir o conteúdo da mensagem.</p>
+            </div>
+
+            <p style="text-align: center;" class="italic">Cada pista revelada te aproxima da verdade...</p>
+
+            <div style="text-align: center; margin-top: 30px;">
+                <button class="btn" onclick="startInvestigation()">Iniciar Investigação</button>
+            </div>
+        </div>
+
+        <!-- ============ PUZZLE 1: MEMORY CARDS ============ -->
+        <div class="screen" id="puzzle1">
+            <div class="progress-tracker">
+                <div class="progress-dot completed"></div>
+                <div class="progress-dot active"></div>
+                <div class="progress-dot"></div>
+                <div class="progress-dot"></div>
+                <div class="progress-dot"></div>
+                <div class="progress-dot"></div>
+            </div>
+
+            <div class="case-header">
+                <div class="case-number">EVIDÊNCIA 01</div>
+                <h2>Memórias Fragmentadas</h2>
+            </div>
+
+            <p>Encontre os pares de cartas correspondentes. Cada par revelado te aproxima da primeira pista.</p>
+
+            <div class="investigation-note">
+                Registros indicam que estas imagens estão conectadas ao caso. Encontre as correspondências.
+            </div>
+
+            <div class="memory-grid" id="memory-grid">
+                <!-- Cards will be generated by JS -->
+            </div>
+
+            <p style="text-align: center; margin-top: 15px;">
+                Pares encontrados: <span id="pairs-found">0</span> / 6
+            </p>
+
+            <div class="success-msg" id="puzzle1-success">
+                Primeira pista revelada: o evento acontecerá em um dia específico...
+            </div>
+
+            <div class="hint-container">
+                <button class="btn btn-small" onclick="showHint(1)">pedir dica</button>
+                <p class="hint-text" id="hint1">As cartas têm pares. Memorize as posições e encontre as correspondências.</p>
+            </div>
+
+            <div style="text-align: center; margin-top: 25px;">
+                <button class="btn" id="puzzle1-next" onclick="goToPuzzle(2)" disabled>Próxima Pista</button>
+            </div>
+        </div>
+
+        <!-- ============ PUZZLE 2: CIPHER DECODE ============ -->
+        <div class="screen" id="puzzle2">
+            <div class="progress-tracker">
+                <div class="progress-dot completed"></div>
+                <div class="progress-dot completed"></div>
+                <div class="progress-dot active"></div>
+                <div class="progress-dot"></div>
+                <div class="progress-dot"></div>
+                <div class="progress-dot"></div>
+            </div>
+
+            <div class="case-header">
+                <div class="case-number">EVIDÊNCIA 02</div>
+                <h2>A Mensagem Cifrada</h2>
+            </div>
+
+            <p>Uma mensagem foi encontrada usando o Código de César. Cada letra foi deslocada 3 posições no alfabeto. Decifre-a.</p>
+
+            <div class="investigation-note">
+                Nota do investigador: A = D, B = E, C = F... e assim por diante.
+            </div>
+
+            <div class="cipher-display">
+                VDEDGR
+            </div>
+
+            <p style="text-align: center;">A palavra decifrada é:</p>
+
+            <div class="decoded-display" id="decoded-word"></div>
+
+            <div class="cipher-key">
+                <button class="key-btn" onclick="addLetter('S')">S</button>
+                <button class="key-btn" onclick="addLetter('A')">A</button>
+                <button class="key-btn" onclick="addLetter('B')">B</button>
+                <button class="key-btn" onclick="addLetter('D')">D</button>
+                <button class="key-btn" onclick="addLetter('O')">O</button>
+                <button class="key-btn" onclick="addLetter('E')">E</button>
+                <button class="key-btn" onclick="addLetter('M')">M</button>
+                <button class="key-btn" onclick="addLetter('I')">I</button>
+            </div>
+
+            <div style="text-align: center; margin: 15px 0;">
+                <button class="btn btn-small" onclick="clearCipher()">limpar</button>
+            </div>
+
+            <div class="success-msg" id="puzzle2-success">
+                A data está se formando...
+            </div>
+
+            <div class="hint-container">
+                <button class="btn btn-small" onclick="showHint(2)">pedir dica</button>
+                <p class="hint-text" id="hint2">V-3=S, D-3=A, E-3=B... Qual dia da semana seria?</p>
+            </div>
+
+            <div style="text-align: center; margin-top: 25px;">
+                <button class="btn" id="puzzle2-next" onclick="goToPuzzle(3)" disabled>Próxima Pista</button>
+            </div>
+        </div>
+
+        <!-- ============ PUZZLE 3: SEQUENCE ============ -->
+        <div class="screen" id="puzzle3">
+            <div class="progress-tracker">
+                <div class="progress-dot completed"></div>
+                <div class="progress-dot completed"></div>
+                <div class="progress-dot completed"></div>
+                <div class="progress-dot active"></div>
+                <div class="progress-dot"></div>
+                <div class="progress-dot"></div>
+            </div>
+
+            <div class="case-header">
+                <div class="case-number">EVIDÊNCIA 03</div>
+                <h2>A Sequência</h2>
+            </div>
+
+            <p>Complete a sequência de símbolos. A ordem importa.</p>
+
+            <div class="investigation-note">
+                Padrão detectado: os elementos se repetem seguindo uma lógica circular. Qual vem depois da borboleta?
+            </div>
+
+            <div class="sequence-container">
+                <div class="sequence-slot" id="seq-show-1">
+                    <svg viewBox="0 0 40 40" width="35" height="35"><circle cx="20" cy="25" r="8" fill="#6a6a78"/><circle cx="20" cy="14" r="5" fill="#6a6a78"/></svg>
+                </div>
+                <div class="sequence-slot" id="seq-show-2">
+                    <svg viewBox="0 0 40 40" width="35" height="35"><path d="M20,15 Q10,5 5,10 Q2,18 10,22 Q18,26 20,18" fill="#6a6a78"/><path d="M20,15 Q30,5 35,10 Q38,18 30,22 Q22,26 20,18" fill="#6a6a78"/></svg>
+                </div>
+                <div class="sequence-slot" id="seq-show-3">
+                    <svg viewBox="0 0 40 40" width="35" height="35"><path d="M10,35 L10,12 Q10,5 20,5 Q30,5 30,12 L30,35" fill="#6a6a78"/></svg>
+                </div>
+                <div class="sequence-slot" id="seq-slot-1"></div>
+                <div class="sequence-slot" id="seq-slot-2"></div>
+                <div class="sequence-slot" id="seq-slot-3"></div>
+            </div>
+
+            <p style="text-align: center; color: #5a5a68; font-size: 0.9rem;">aranha - borboleta - lápide - ? - ? - ?</p>
+
+            <div class="symbol-options">
+                <button class="symbol-btn" onclick="selectSymbol(1, 'spider')" title="aranha">
+                    <svg viewBox="0 0 40 40"><circle cx="20" cy="25" r="8"/><circle cx="20" cy="14" r="5"/></svg>
+                </button>
+                <button class="symbol-btn" onclick="selectSymbol(2, 'butterfly')" title="borboleta">
+                    <svg viewBox="0 0 40 40"><path d="M20,15 Q10,5 5,10 Q2,18 10,22 Q18,26 20,18"/><path d="M20,15 Q30,5 35,10 Q38,18 30,22 Q22,26 20,18"/></svg>
+                </button>
+                <button class="symbol-btn" onclick="selectSymbol(3, 'tombstone')" title="lápide">
+                    <svg viewBox="0 0 40 40"><path d="M10,35 L10,12 Q10,5 20,5 Q30,5 30,12 L30,35"/></svg>
+                </button>
+            </div>
+
+            <div class="success-msg" id="puzzle3-success">
+                O padrão se revela... o ciclo continua eternamente.
+            </div>
+
+            <div class="hint-container">
+                <button class="btn btn-small" onclick="showHint(3)">pedir dica</button>
+                <p class="hint-text" id="hint3">O padrão é: aranha, borboleta, lápide, aranha, borboleta, lápide...</p>
+            </div>
+
+            <div style="text-align: center; margin-top: 25px;">
+                <button class="btn" id="puzzle3-next" onclick="goToPuzzle(4)" disabled>Próxima Pista</button>
+            </div>
+        </div>
+
+        <!-- ============ PUZZLE 4: WORD ASSEMBLY ============ -->
+        <div class="screen" id="puzzle4">
+            <div class="progress-tracker">
+                <div class="progress-dot completed"></div>
+                <div class="progress-dot completed"></div>
+                <div class="progress-dot completed"></div>
+                <div class="progress-dot completed"></div>
+                <div class="progress-dot active"></div>
+                <div class="progress-dot"></div>
+            </div>
+
+            <div class="case-header">
+                <div class="case-number">EVIDÊNCIA 04</div>
+                <h2>O Local</h2>
+            </div>
+
+            <p>Reorganize as letras para descobrir o nome do local misterioso.</p>
+
+            <div class="investigation-note">
+                Fragmento encontrado: "...um lugar em Nova York... não a cidade, mas o espírito... onde a massa encontra o fogo..."
+            </div>
+
+            <div class="word-slots" id="word-slots">
+                <div class="word-slot" data-index="0"></div>
+                <div class="word-slot" data-index="1"></div>
+                <div class="word-slot" data-index="2"></div>
+                <div class="word-slot" data-index="3"></div>
+                <div class="word-slot" data-index="4"></div>
+                <div class="word-gap"></div>
+                <div class="word-slot" data-index="5"></div>
+                <div class="word-slot" data-index="6"></div>
+            </div>
+
+            <div class="letter-bank" id="letter-bank">
+                <div class="letter-tile" onclick="selectLetter(this)">O</div>
+                <div class="letter-tile" onclick="selectLetter(this)">T</div>
+                <div class="letter-tile" onclick="selectLetter(this)">I</div>
+                <div class="letter-tile" onclick="selectLetter(this)">V</div>
+                <div class="letter-tile" onclick="selectLetter(this)">S</div>
+                <div class="letter-tile" onclick="selectLetter(this)">N</div>
+                <div class="letter-tile" onclick="selectLetter(this)">Y</div>
+            </div>
+
+            <div style="text-align: center; margin: 15px 0;">
+                <button class="btn btn-small" onclick="clearWord()">limpar</button>
+            </div>
+
+            <div class="success-msg" id="puzzle4-success">
+                O destino se revela...
+            </div>
+
+            <div class="hint-container">
+                <button class="btn btn-small" onclick="showHint(4)">pedir dica</button>
+                <p class="hint-text" id="hint4">Pense em um nome italiano... começa com V e termina com NY.</p>
+            </div>
+
+            <div style="text-align: center; margin-top: 25px;">
+                <button class="btn" id="puzzle4-next" onclick="goToPuzzle(5)" disabled>Próxima Pista</button>
+            </div>
+        </div>
+
+        <!-- ============ PUZZLE 5: FINAL LOCK ============ -->
+        <div class="screen" id="puzzle5">
+            <div class="progress-tracker">
+                <div class="progress-dot completed"></div>
+                <div class="progress-dot completed"></div>
+                <div class="progress-dot completed"></div>
+                <div class="progress-dot completed"></div>
+                <div class="progress-dot completed"></div>
+                <div class="progress-dot active"></div>
+            </div>
+
+            <div class="case-header">
+                <div class="case-number">EVIDÊNCIA FINAL</div>
+                <h2>O Cofre</h2>
+            </div>
+
+            <p>Todas as pistas levam a este momento. Digite a combinação correta para abrir o cofre e revelar a mensagem final.</p>
+
+            <div class="investigation-note">
+                Pistas coletadas indicam: o dia da semana é SÁBADO (6º dia). O nome VITO'S tem 5 letras. NY = New York = estado número 11 dos EUA.
+            </div>
+
+            <div class="lock-container">
+                <div class="lock-digit">
+                    <button class="lock-btn" onclick="changeLock(0, 1)">+</button>
+                    <div class="lock-digit-display" id="lock-0">0</div>
+                    <button class="lock-btn" onclick="changeLock(0, -1)">-</button>
+                </div>
+                <div class="lock-digit">
+                    <button class="lock-btn" onclick="changeLock(1, 1)">+</button>
+                    <div class="lock-digit-display" id="lock-1">0</div>
+                    <button class="lock-btn" onclick="changeLock(1, -1)">-</button>
+                </div>
+                <div class="lock-digit">
+                    <button class="lock-btn" onclick="changeLock(2, 1)">+</button>
+                    <div class="lock-digit-display" id="lock-2">0</div>
+                    <button class="lock-btn" onclick="changeLock(2, -1)">-</button>
+                </div>
+            </div>
+
+            <p style="text-align: center; color: #5a5a68; font-size: 0.9rem; margin-top: 15px;">
+                Combinação: dia - letras - estado
+            </p>
+
+            <div style="text-align: center; margin-top: 25px;">
+                <button class="btn" onclick="checkLock()">Abrir Cofre</button>
+            </div>
+
+            <div class="hint-container">
+                <button class="btn btn-small" onclick="showHint(5)">pedir dica</button>
+                <p class="hint-text" id="hint5">6 - 5 - 11. Sábado, VITO'S, New York.</p>
+            </div>
+        </div>
+
+        <!-- ============ FINAL REVEAL ============ -->
+        <div class="screen" id="final">
+            <div class="reveal-container">
+                <h1>Caso Encerrado</h1>
+                
+                <div class="line"></div>
+                
+                <p>Você decifrou todas as pistas. A mensagem era um convite.</p>
+
+                <div class="reveal-box">
+                    <p class="italic" style="color: #7a7a88;">A pergunta é simples:</p>
+                    
+                    <h2 style="color: #b8b8c3; margin: 25px 0;">Aceita sair comigo?</h2>
+                    
+                    <div class="line"></div>
+                    
+                    <div class="date-text">Sábado</div>
+                    
+                    <div class="place-text">Vito's New York Kitchen</div>
+                    
+                    <p class="italic" style="margin-top: 30px; color: #6a6a78; margin-bottom: 0;">
+                        Pizza, conversa, e ver no que dá.
+                    </p>
+                </div>
+
+                <div style="margin-top: 35px;">
+                    <button class="btn" onclick="acceptInvite()">aceito</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ ACCEPTED ============ -->
+        <div class="screen" id="accepted">
+            <div class="reveal-container">
+                <h1>Perfeito</h1>
+                
+                <div class="line"></div>
+                
+                <p style="font-size: 1.4rem; color: #b8b8c3;">
+                    Sábado então.
+                </p>
+                
+                <p class="place-text" style="margin: 30px 0;">
+                    Vito's New York Kitchen
+                </p>
+
+                <div class="line"></div>
+                
+                <p class="italic" style="margin-top: 40px; color: #5a5a68;">
+                    Até lá.
+                </p>
+
+                <div class="clues-container" style="justify-content: center; margin-top: 40px;">
+                    <span class="clue-item found">caso encerrado</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Initialize particles
+        function createParticles() {
+            const container = document.getElementById('particles');
+            for (let i = 0; i < 15; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 25 + 's';
+                particle.style.animationDuration = (20 + Math.random() * 10) + 's';
+                container.appendChild(particle);
+            }
+        }
+        createParticles();
+
+        // Notification system
+        function showNotification(message) {
+            const notif = document.getElementById('notification');
+            notif.textContent = message;
+            notif.classList.add('show');
+            setTimeout(() => notif.classList.remove('show'), 3000);
+        }
+
+        // Screen navigation
+        function goToScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function startInvestigation() {
+            goToScreen('puzzle1');
+        }
+
+        function goToPuzzle(num) {
+            goToScreen('puzzle' + num);
+        }
+
+        // ========== PUZZLE 1: MEMORY GAME ==========
+        const cardSymbols = [
+            { id: 'spider', svg: '<svg viewBox="0 0 50 50"><circle cx="25" cy="30" r="10"/><circle cx="25" cy="18" r="7"/><line x1="18" y1="25" x2="5" y2="15" stroke="currentColor" stroke-width="2"/><line x1="32" y1="25" x2="45" y2="15" stroke="currentColor" stroke-width="2"/><line x1="16" y1="30" x2="3" y2="40" stroke="currentColor" stroke-width="2"/><line x1="34" y1="30" x2="47" y2="40" stroke="currentColor" stroke-width="2"/></svg>' },
+            { id: 'moon', svg: '<svg viewBox="0 0 50 50"><path d="M20,5 A20,20 0 1,0 20,45 A15,15 0 1,1 20,5"/></svg>' },
+            { id: 'cat', svg: '<svg viewBox="0 0 50 50"><path d="M10,20 L5,8 L15,15 L25,10 L35,15 L45,8 L40,20 Q45,30 40,40 L35,45 L15,45 L10,40 Q5,30 10,20"/><circle cx="18" cy="28" r="3" fill="#1a1a22"/><circle cx="32" cy="28" r="3" fill="#1a1a22"/></svg>' },
+            { id: 'butterfly', svg: '<svg viewBox="0 0 50 50"><path d="M25,25 Q10,10 5,20 Q5,30 15,30 Q22,30 25,25"/><path d="M25,25 Q40,10 45,20 Q45,30 35,30 Q28,30 25,25"/><ellipse cx="25" cy="30" rx="2" ry="8"/></svg>' },
+            { id: 'skull', svg: '<svg viewBox="0 0 50 50"><ellipse cx="25" cy="22" rx="18" ry="16"/><ellipse cx="17" cy="20" rx="5" ry="6" fill="#1a1a22"/><ellipse cx="33" cy="20" rx="5" ry="6" fill="#1a1a22"/><path d="M20,35 L20,42 M25,35 L25,42 M30,35 L30,42" stroke="currentColor" stroke-width="2"/></svg>' },
+            { id: 'coffin', svg: '<svg viewBox="0 0 50 50"><path d="M15,5 L35,5 L40,15 L40,45 L10,45 L10,15 Z"/><line x1="20" y1="20" x2="30" y2="20" stroke="#1a1a22" stroke-width="2"/><line x1="25" y1="15" x2="25" y2="30" stroke="#1a1a22" stroke-width="2"/></svg>' }
+        ];
+
+        let memoryCards = [];
+        let flippedCards = [];
+        let matchedPairs = 0;
+        let canFlip = true;
+
+        function initMemoryGame() {
+            const grid = document.getElementById('memory-grid');
+            grid.innerHTML = '';
+            
+            // Create pairs
+            let cards = [];
+            cardSymbols.forEach((symbol, index) => {
+                cards.push({ ...symbol, pairId: index });
+                cards.push({ ...symbol, pairId: index });
+            });
+            
+            // Shuffle
+            cards = cards.sort(() => Math.random() - 0.5);
+            memoryCards = cards;
+            
+            // Create DOM
+            cards.forEach((card, index) => {
+                const cardEl = document.createElement('div');
+                cardEl.className = 'memory-card';
+                cardEl.dataset.index = index;
+                cardEl.dataset.pairId = card.pairId;
+                cardEl.innerHTML = `
+                    <div class="card-back"></div>
+                    <div class="card-front">${card.svg}</div>
+                `;
+                cardEl.addEventListener('click', () => flipCard(cardEl));
+                grid.appendChild(cardEl);
+            });
+        }
+
+        function flipCard(cardEl) {
+            if (!canFlip) return;
+            if (cardEl.classList.contains('flipped')) return;
+            if (cardEl.classList.contains('matched')) return;
+            if (flippedCards.length >= 2) return;
+            
+            cardEl.classList.add('flipped');
+            flippedCards.push(cardEl);
+            
+            if (flippedCards.length === 2) {
+                canFlip = false;
+                checkMatch();
+            }
+        }
+
+        function checkMatch() {
+            const [card1, card2] = flippedCards;
+            const match = card1.dataset.pairId === card2.dataset.pairId;
+            
+            if (match) {
+                card1.classList.add('matched');
+                card2.classList.add('matched');
+                matchedPairs++;
+                document.getElementById('pairs-found').textContent = matchedPairs;
+                
+                flippedCards = [];
+                canFlip = true;
+                
+                if (matchedPairs === 6) {
+                    setTimeout(() => {
+                        document.getElementById('puzzle1-success').classList.add('show');
+                        document.getElementById('puzzle1-next').disabled = false;
+                        showNotification('Todas as memórias recuperadas');
+                    }, 500);
+                }
+            } else {
+                card1.classList.add('wrong');
+                card2.classList.add('wrong');
+                
+                setTimeout(() => {
+                    card1.classList.remove('flipped', 'wrong');
+                    card2.classList.remove('flipped', 'wrong');
+                    flippedCards = [];
+                    canFlip = true;
+                }, 1000);
+            }
+        }
+
+        // Initialize memory game when page loads
+        document.addEventListener('DOMContentLoaded', initMemoryGame);
+
+        // ========== PUZZLE 2: CIPHER ==========
+        let decodedWord = '';
+        const correctWord = 'SABADO';
+
+        function addLetter(letter) {
+            if (decodedWord.length < 6) {
+                decodedWord += letter;
+                document.getElementById('decoded-word').textContent = decodedWord;
+                
+                if (decodedWord === correctWord) {
+                    setTimeout(() => {
+                        document.getElementById('puzzle2-success').classList.add('show');
+                        document.getElementById('puzzle2-next').disabled = false;
+                        showNotification('Palavra decifrada corretamente');
+                    }, 300);
+                } else if (decodedWord.length === 6 && decodedWord !== correctWord) {
+                    setTimeout(() => {
+                        showNotification('Tente novamente...');
+                        decodedWord = '';
+                        document.getElementById('decoded-word').textContent = '';
+                    }, 500);
+                }
+            }
+        }
+
+        function clearCipher() {
+            decodedWord = '';
+            document.getElementById('decoded-word').textContent = '';
+        }
+
+        // ========== PUZZLE 3: SEQUENCE ==========
+        let sequenceIndex = 0;
+        const correctSequence = ['spider', 'butterfly', 'tombstone'];
+        let currentSequence = [];
+
+        function selectSymbol(slotNum, symbol) {
+            if (sequenceIndex >= 3) return;
+            
+            const expectedSymbol = correctSequence[sequenceIndex];
+            const slot = document.getElementById('seq-slot-' + (sequenceIndex + 1));
+            
+            // Create SVG based on symbol
+            let svg = '';
+            if (symbol === 'spider') {
+                svg = '<svg viewBox="0 0 40 40" width="35" height="35"><circle cx="20" cy="25" r="8" fill="#7a8a7a"/><circle cx="20" cy="14" r="5" fill="#7a8a7a"/></svg>';
+            } else if (symbol === 'butterfly') {
+                svg = '<svg viewBox="0 0 40 40" width="35" height="35"><path d="M20,15 Q10,5 5,10 Q2,18 10,22 Q18,26 20,18" fill="#7a8a7a"/><path d="M20,15 Q30,5 35,10 Q38,18 30,22 Q22,26 20,18" fill="#7a8a7a"/></svg>';
+            } else if (symbol === 'tombstone') {
+                svg = '<svg viewBox="0 0 40 40" width="35" height="35"><path d="M10,35 L10,12 Q10,5 20,5 Q30,5 30,12 L30,35" fill="#7a8a7a"/></svg>';
+            }
+
+            if (symbol === expectedSymbol) {
+                slot.innerHTML = svg;
+                slot.classList.add('filled');
+                currentSequence.push(symbol);
+                sequenceIndex++;
+                
+                if (sequenceIndex === 3) {
+                    setTimeout(() => {
+                        document.getElementById('puzzle3-success').classList.add('show');
+                        document.getElementById('puzzle3-next').disabled = false;
+                        showNotification('Sequência completa');
+                    }, 300);
+                }
+            } else {
+                slot.classList.add('wrong');
+                setTimeout(() => slot.classList.remove('wrong'), 300);
+                showNotification('Símbolo incorreto...');
+            }
+        }
+
+        // ========== PUZZLE 4: WORD ASSEMBLY ==========
+        let currentWord = [];
+        const targetWord = ['V', 'I', 'T', 'O', 'S', 'N', 'Y'];
+
+        function selectLetter(element) {
+            if (element.classList.contains('used')) return;
+            if (currentWord.length >= 7) return;
+
+            const letter = element.textContent;
+            currentWord.push(letter);
+            element.classList.add('used');
+
+            // Update slots
+            const slots = document.querySelectorAll('.word-slot');
+            slots[currentWord.length - 1].textContent = letter;
+            slots[currentWord.length - 1].classList.add('filled');
+
+            // Check if complete
+            if (currentWord.length === 7) {
+                const word = currentWord.join('');
+                if (word === 'VITOSNY') {
+                    setTimeout(() => {
+                        document.getElementById('puzzle4-success').classList.add('show');
+                        document.getElementById('puzzle4-next').disabled = false;
+                        showNotification('Local descoberto: VITO\'S NY');
+                    }, 300);
+                } else {
+                    setTimeout(() => {
+                        showNotification('Tente outra combinação...');
+                        clearWord();
+                    }, 500);
+                }
+            }
+        }
+
+        function clearWord() {
+            currentWord = [];
+            document.querySelectorAll('.word-slot').forEach(slot => {
+                slot.textContent = '';
+                slot.classList.remove('filled');
+            });
+            document.querySelectorAll('.letter-tile').forEach(tile => {
+                tile.classList.remove('used');
+            });
+        }
+
+        // ========== PUZZLE 5: LOCK ==========
+        let lockValues = [0, 0, 0];
+        const correctCode = [6, 5, 11];
+
+        function changeLock(index, delta) {
+            lockValues[index] = (lockValues[index] + delta + 20) % 20;
+            document.getElementById('lock-' + index).textContent = lockValues[index];
+        }
+
+        function checkLock() {
+            if (lockValues[0] === correctCode[0] && 
+                lockValues[1] === correctCode[1] && 
+                lockValues[2] === correctCode[2]) {
+                showNotification('Cofre aberto');
+                setTimeout(() => goToScreen('final'), 800);
+            } else {
+                showNotification('Combinação incorreta...');
+                document.querySelector('.lock-container').style.animation = 'shake 0.3s ease';
+                setTimeout(() => {
+                    document.querySelector('.lock-container').style.animation = '';
+                }, 300);
+            }
+        }
+
+        // ========== HINTS ==========
+        function showHint(puzzleNum) {
+            document.getElementById('hint' + puzzleNum).classList.add('visible');
+        }
+
+        // ========== FINAL ==========
+        function acceptInvite() {
+            goToScreen('accepted');
+        }
+    </script>
+</body>
+</html>
